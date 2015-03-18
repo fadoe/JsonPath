@@ -27,14 +27,15 @@ class JsonStore
     function& get(&$obj, $expr)
     {
         if ((($exprs = JsonStore::_normalizedFirst($obj, $expr)) !== false) &&
-            (is_array($exprs) || $exprs instanceof Traversable)) {
+            (is_array($exprs) || $exprs instanceof Traversable)
+        ) {
             $values = array();
 
             foreach ($exprs as $expr) {
                 $o =& $obj;
                 $keys = preg_split("/([\"'])?\]\[([\"'])?/", preg_replace(array("/^\\$\[[\"']?/", "/[\"']?\]$/"), "", $expr));
 
-                for ($i=0; $i<count($keys); $i++) {
+                for ($i = 0; $i < count($keys); $i++) {
                     $o =& $o[$keys[$i]];
                 }
 
@@ -51,42 +52,47 @@ class JsonStore
     {
         if ($res =& JsonStore::get($obj, $expr)) {
             foreach ($res as &$r) {
-                $r = $value;
+                if (is_callable($value)) {
+                    $r = $value($r);
+                } else {
+                    $r = $value;
+                }
             }
 
-          return true;
+            return true;
         }
 
-      return false;
+        return false;
     }
 
-    function add(&$obj, $parentexpr, $value, $name="")
+    function add(&$obj, $parentexpr, $value, $name = "")
     {
-      if($parents =& JsonStore::get($obj, $parentexpr)) {
-        foreach ($parents as &$parent) {
-            $parent = is_array($parent) ? $parent : array();
+        if ($parents =& JsonStore::get($obj, $parentexpr)) {
+            foreach ($parents as &$parent) {
+                $parent = is_array($parent) ? $parent : array();
 
-            if ($name != "") {
-                $parent[$name] = $value;
-            } else {
-                $parent[] = $value;
+                if ($name != "") {
+                    $parent[$name] = $value;
+                } else {
+                    $parent[] = $value;
+                }
             }
+
+            return true;
         }
 
-        return true;
-      }
-
-      return false;
+        return false;
     }
 
     function remove(&$obj, $expr)
     {
         if ((($exprs = JsonStore::_normalizedFirst($obj, $expr)) !== false) &&
-             (is_array($exprs) || $exprs instanceof Traversable)) {
+            (is_array($exprs) || $exprs instanceof Traversable)
+        ) {
             foreach ($exprs as &$expr) {
                 $o =& $obj;
                 $keys = preg_split("/([\"'])?\]\[([\"'])?/", preg_replace(array("/^\\$\[[\"']?/", "/[\"']?\]$/"), "", $expr));
-                for ($i=0; $i<count($keys)-1; $i++) {
+                for ($i = 0; $i < count($keys) - 1; $i++) {
                     $o =& $o[$keys[$i]];
                 }
 
@@ -113,4 +119,3 @@ class JsonStore
         }
     }
 }
-?>
